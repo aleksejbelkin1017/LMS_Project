@@ -1,33 +1,47 @@
 from rest_framework import generics
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 
 from users.models import User, Payment
-from users.serializers import UserSerializer, PaymentSerializer
+from users.serializers import UserSerializer, PaymentSerializer, UserRegisterSerializer
 
 
-class UserRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
+class UserListCreateAPIView(generics.ListCreateAPIView):
     """
-    Эндпоинт для получения и редактирования профиля пользователя.
-    Доступен по ID пользователя.
+    Список пользователей и регистрация.
+    Регистрация (POST) доступна всем, список (GET) — только авторизованным.
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return UserRegisterSerializer
+        return UserSerializer
+
+
+class UserRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Получение, обновление и удаление пользователя.
+    Доступно только авторизованным.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
 
 class PaymentListAPIView(generics.ListAPIView):
-    """
-    Эндпоинт для вывода списка платежей.
-    Поддерживает фильтрацию и сортировку.
-    """
+    """Эндпоинт для вывода списка платежей с фильтрацией и сортировкой."""
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+    permission_classes = [IsAuthenticated]
 
-    # Настраиваем фильтры: DjangoFilterBackend для точной фильтрации и OrderingFilter для сортировки
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-
-    # Поля для фильтрации (Задание 4): по курсу, по уроку, по способу оплаты
     filterset_fields = ['paid_course', 'paid_lesson', 'payment_method']
-
-    # Поля для сортировки (Задание 4): по дате оплаты
     ordering_fields = ['payment_date']

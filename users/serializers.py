@@ -16,3 +16,22 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "email", "phone", "city", "avatar", "payments_history"]
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    """Сериализатор для регистрации нового пользователя."""
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'password', 'phone', 'city']
+
+    def create(self, validated_data):
+        # Хешируем пароль перед сохранением
+        user = User.objects.create_user(
+            email=validated_data['email'],
+            password=validated_data['password'],
+            phone=validated_data.get('phone'),
+            city=validated_data.get('city')
+        )
+        return user

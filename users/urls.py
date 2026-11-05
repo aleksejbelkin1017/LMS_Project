@@ -3,14 +3,21 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from users.views import UserRetrieveUpdateAPIView, PaymentListAPIView
+from users.views import (
+    UserListCreateAPIView,
+    UserRetrieveUpdateDestroyAPIView,
+    PaymentListAPIView,
+)
 
 urlpatterns = [
-    # Эндпоинты для JWT-авторизации (доступны всем)
+    # JWT-авторизация
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-    # Эндпоинты пользователей
-    path('users/<int:pk>/', UserRetrieveUpdateAPIView.as_view(), name='user-detail'),
+    # CRUD для пользователей
+    path('users/', UserListCreateAPIView.as_view(), name='user-list-create'),
+    path('users/<int:pk>/', UserRetrieveUpdateDestroyAPIView.as_view(), name='user-detail'),
+
+    # Платежи
     path('payments/', PaymentListAPIView.as_view(), name='payment-list'),
 ]
