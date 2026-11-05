@@ -18,3 +18,15 @@ class IsOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
         # Проверяем, что у объекта есть поле owner и оно совпадает с текущим пользователем
         return hasattr(obj, 'owner') and obj.owner == request.user
+
+class IsSelfOrReadOnly(BasePermission):
+    """
+    Разрешение: читать может любой авторизованный,
+    а изменять — только владелец профиля.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Разрешаем безопасные методы (GET, HEAD, OPTIONS) всем
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return True
+        # Изменять (PUT, PATCH, DELETE) можно только свой профиль
+        return obj == request.user

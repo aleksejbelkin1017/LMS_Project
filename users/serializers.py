@@ -9,13 +9,20 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # Доп. задание: добавляем историю платежей
-    # source="payments" — это related_name из модели Payment
+    """Полный сериализатор профиля (для самого пользователя)."""
     payments_history = PaymentSerializer(many=True, read_only=True, source="payments")
 
     class Meta:
         model = User
-        fields = ["id", "email", "phone", "city", "avatar", "payments_history"]
+        fields = ["id", "email", "phone", "city", "avatar", "last_name", "payments_history"]
+
+
+class UserPublicSerializer(serializers.ModelSerializer):
+    """Краткий сериализатор профиля (для просмотра другими пользователями)."""
+    class Meta:
+        model = User
+        # Исключаем пароль, фамилию и историю платежей
+        fields = ["id", "email", "phone", "city", "avatar"]
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -27,7 +34,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'password', 'phone', 'city']
 
     def create(self, validated_data):
-        # Хешируем пароль перед сохранением
         user = User.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],

@@ -4,14 +4,17 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 
 from users.models import User, Payment
-from users.serializers import UserSerializer, PaymentSerializer, UserRegisterSerializer
+from users.serializers import (
+    UserSerializer,
+    UserPublicSerializer,
+    PaymentSerializer,
+    UserRegisterSerializer
+)
+from users.permissions import IsSelfOrReadOnly
 
 
 class UserListCreateAPIView(generics.ListCreateAPIView):
-    """
-    Список пользователей и регистрация.
-    Регистрация (POST) доступна всем, список (GET) — только авторизованным.
-    """
+    """Список пользователей и регистрация."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -27,13 +30,16 @@ class UserListCreateAPIView(generics.ListCreateAPIView):
 
 
 class UserRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Получение, обновление и удаление пользователя.
-    Доступно только авторизованным.
-    """
+    """Получение, обновление и удаление пользователя с разными правами."""
     queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSelfOrReadOnly]
+
+    def get_serializer_class(self):
+        # Если пользователь смотрит свой профиль — показываем полный
+        if self.request.user == self.get_object():
+            return UserSerializer
+        # Если чужой — только публичные данные
+        return UserPublicSerializer
 
 
 class PaymentListAPIView(generics.ListAPIView):
