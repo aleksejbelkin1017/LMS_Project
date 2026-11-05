@@ -10,3 +10,11 @@ class IsModerator(BasePermission):
             return False
         # Проверяем, есть ли пользователь в группе
         return request.user.groups.filter(name='Moderators').exists()
+
+class IsOwner(BasePermission):
+    """
+    Разрешение, которое проверяет, является ли пользователь владельцем объекта.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Проверяем, что у объекта есть поле owner и оно совпадает с текущим пользователем
+        return hasattr(obj, 'owner') and obj.owner == request.user
