@@ -1,3 +1,4 @@
+from lms.paginators import MyPagination
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -13,6 +14,7 @@ class CourseViewSet(viewsets.ModelViewSet):
     """ViewSet для CRUD курсов с разграничением прав."""
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
+    pagination_class = MyPagination
 
     def get_permissions(self):
         """Настраиваем права в зависимости от действия (action)."""
@@ -41,6 +43,7 @@ class LessonListCreateAPIView(generics.ListCreateAPIView):
     """Список всех уроков и создание нового (GET, POST)."""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
+    pagination_class = MyPagination
 
     def get_permissions(self):
         if self.request.method == 'POST':
