@@ -77,3 +77,62 @@ class LessonTestCase(APITestCase):
         url = reverse('lesson-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class SubscriptionTestCase(APITestCase):
+    """Тесты для функционала подписки на курс."""
+
+    def setUp(self):
+        """Подготовка данных перед каждым тестом."""
+        self.user = User.objects.create_user(email="subuser@example.com", password="testpass123")
+        self.course = Course.objects.create(name="Курс для подписки", owner=self.user)
+
+        # Второй пользователь для теста чужих действий
+        self.other_user = User.objects.create_user(email="other@example.com", password="testpass123")
+
+        # Аутентифицируем первого пользователя
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_subscription(self):
+        """Тест создания подписки."""
+        url = reverse('subscription')
+        data = {"course_id": self.course.id}
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], "Подписка добавлена")
+        self.assertTrue(self.user.subscriptions.filter(course=self.course).exists())
+
+    def test_delete_subscription(self):
+        """Тест удаления подписки (повторный запрос)."""
+        url = reverse('subscription')
+        data = {"course_id": self.course.id}
+
+        # Создаем подписку
+        self.client.post(url, data)
+        # Удаляем
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], "Подписка удалена")
+        self.assertFalse(self.user.subscriptions.filter(course=self.course).exists())
+
+    def test_is_subscribed_field(self):
+        """Тест отображения статуса подписки в курсе."""
+        # Создаем подписку через модель
+        self.user.subscriptions.create(course=self.course)
+
+        url = reverse('courses-detail', args=(self.course.pk,))
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['is_subscribed'])
+
+    def test_subscription_unauthorized(self):
+        """Тест доступа к подписке без авторизации."""
+        self.client.force_authenticate(user=None)
+        url = reverse('subscription')
+        data = {"course_id": self.course.id}
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
