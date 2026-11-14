@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -136,3 +137,50 @@ class SubscriptionTestCase(APITestCase):
         response = self.client.post(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class AccessPermissionsTestCase(APITestCase):
+    """Тесты прав доступа для разных групп пользователей."""
+
+    def setUp(self):
+        # Создаем владельца и его курс/урок
+        self.owner = User.objects.create_user(email="owner@example.com", password="testpass123")
+        self.course = Course.objects.create(name="Курс владельца", owner=self.owner)
+        self.lesson = Lesson.objects.create(name="Урок владельца", course=self.course, owner=self.owner)
+
+        # Создаем не-владельца (обычный пользователь)
+        self.stranger = User.objects.create_user(email="stranger@example.com", password="testpass123")
+
+        # Создаем модератора и добавляем его в группу
+        self.moderator = User.objects.create_user(email="moder@example.com", password="testpass123")
+        moder_group, _ = Group.objects.get_or_create(name='Moderators')
+        self.moderator.groups.add(moder_group)
+
+    def test_stranger_cannot_update_lesson(self):
+        """Не-владелец не может редактировать чужой урок."""
+        self.client.force_authenticate(user=self.stranger)
+        url = reverse('lesson-detail', args=(self.lesson.pk,))
+        response = self.client.patch(url, {"name": "Взлом"})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND) # Так как queryset фильтруется, вернется 404
+
+    def test_moderator_can_update_lesson(self):
+        """Модератор может редактировать чужой урок."""
+        self.client.force_authenticate(user=self.moderator)
+        url = reverse('lesson-detail', args=(self.lesson.pk,))
+        response = self.client.patch(url, {"name": "Отредактировано модератором"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_moderator_cannot_delete_lesson(self):
+        """Модератор не может удалять чужой урок."""
+        self.client.force_authenticate(user=self.moderator)
+        url = reverse('lesson-detail', args=(self.lesson.pk,))
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_moderator_cannot_create_lesson(self):
+        """Модератор не может создавать новые уроки."""
+        self.client.force_authenticate(user=self.moderator)
+        url = reverse('lesson-list')
+        data = {"name": "Новый урок", "course": self.course.id}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
