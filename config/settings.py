@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import datetime
 
 load_dotenv()
 
@@ -19,6 +20,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third-party
     "rest_framework",
+    "rest_framework_simplejwt",
+    "django_filters",
     # Local
     "users.apps.UsersConfig",
     "lms.apps.LmsConfig",
@@ -84,3 +87,21 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Кастомная модель пользователя
 AUTH_USER_MODEL = "users.User"
+
+# Настройки DRF
+REST_FRAMEWORK = {
+    # 1. Аутентификация по JWT
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    # 2. Глобальные права доступа: только авторизованным (Задание 1)
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+# Настройки срока жизни JWT-токенов
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
+}
