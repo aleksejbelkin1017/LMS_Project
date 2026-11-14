@@ -4,6 +4,7 @@ from lms.views import (
     CourseViewSet,
     LessonListCreateAPIView,
     LessonRetrieveUpdateDestroyAPIView,
+    SubscriptionAPIView,
 )
 
 # Создаем роутер для ViewSet (Курсы)
@@ -17,4 +18,5 @@ urlpatterns = [
     # Маршруты для уроков (через Generic)
     path('lessons/', LessonListCreateAPIView.as_view(), name='lesson-list'),
     path('lessons/<int:pk>/', LessonRetrieveUpdateDestroyAPIView.as_view(), name='lesson-detail'),
+    path('subscriptions/', SubscriptionAPIView.as_view(), name='subscription'),
 ]
