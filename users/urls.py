@@ -7,6 +7,8 @@ from users.views import (
     UserListCreateAPIView,
     UserRetrieveUpdateDestroyAPIView,
     PaymentListAPIView,
+    PaymentCreateAPIView,
+    PaymentStatusAPIView,
 )
 
 urlpatterns = [
@@ -20,4 +22,6 @@ urlpatterns = [
 
     # Платежи
     path('payments/', PaymentListAPIView.as_view(), name='payment-list'),
+    path('payments/create/', PaymentCreateAPIView.as_view(), name='payment-create'),
+    path('payments/<int:pk>/status/', PaymentStatusAPIView.as_view(), name='payment-status'),
 ]
