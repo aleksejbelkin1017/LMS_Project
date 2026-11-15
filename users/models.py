@@ -125,6 +125,12 @@ class Payment(models.Model):
         null=True,
         verbose_name="Ссылка на оплату"
     )
+    payment_status = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name="Статус платежа в Stripe"
+    )
 
     class Meta:
         verbose_name = "Платеж"

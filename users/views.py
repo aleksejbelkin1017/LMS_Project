@@ -17,6 +17,7 @@ from users.serializers import (
     UserRegisterSerializer
 )
 from users.permissions import IsSelfOrReadOnly
+from users.services import get_stripe_session_status
 
 
 class UserListCreateAPIView(generics.ListCreateAPIView):
@@ -102,3 +103,23 @@ class PaymentCreateAPIView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PaymentStatusAPIView(APIView):
+    """Проверка статуса платежа по его ID."""
+
+    def get(self, request, pk):
+        payment = get_object_or_404(Payment, id=pk, user=request.user)
+
+        if not payment.stripe_session_id:
+            return Response({"error": "У платежа нет ID сессии"}, status=400)
+
+        try:
+            status = get_stripe_session_status(payment.stripe_session_id)
+            # Сохраняем статус в БД
+            payment.payment_status = status
+            payment.save(update_fields=['payment_status'])
+
+            return Response({"status": status, "payment_id": payment.id})
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)

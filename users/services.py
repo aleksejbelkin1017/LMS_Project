@@ -33,3 +33,8 @@ def create_stripe_session(price_id: str) -> dict:
         "session_id": session.id,
         "url": session.url
     }
+
+def get_stripe_session_status(session_id: str) -> str:
+    """Возвращает статус сессии (например, 'paid', 'unpaid')."""
+    session = stripe.checkout.Session.retrieve(session_id)
+    return session.payment_status
