@@ -14,3 +14,7 @@ db.sqlite3
 # IDE
 .idea/
 .vscode/
+
+# Tests and coverage
+.coverage
+htmlcov/
