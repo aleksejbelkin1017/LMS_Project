@@ -5,8 +5,11 @@ from .models import User, Payment
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = ["id", "payment_date", "paid_course", "paid_lesson", "amount", "payment_method"]
-
+        fields = [
+            "id", "payment_date", "paid_course", "paid_lesson", "amount", "payment_method",
+            "stripe_product_id", "stripe_price_id", "stripe_session_id", "payment_url"
+        ]
+        read_only_fields = ["stripe_product_id", "stripe_price_id", "stripe_session_id", "payment_url"]
 
 class UserSerializer(serializers.ModelSerializer):
     """Полный сериализатор профиля (для самого пользователя)."""
