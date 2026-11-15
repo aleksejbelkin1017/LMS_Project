@@ -1,3 +1,4 @@
+import stripe
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -106,3 +107,10 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
 }
+
+# Настройки Stripe
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+
+# Инициализация Stripe
+stripe.api_key = STRIPE_SECRET_KEY
