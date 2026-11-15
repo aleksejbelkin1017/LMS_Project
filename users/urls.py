@@ -7,6 +7,7 @@ from users.views import (
     UserListCreateAPIView,
     UserRetrieveUpdateDestroyAPIView,
     PaymentListAPIView,
+    PaymentCreateAPIView,
 )
 
 urlpatterns = [
@@ -20,4 +21,5 @@ urlpatterns = [
 
     # Платежи
     path('payments/', PaymentListAPIView.as_view(), name='payment-list'),
+    path('payments/create/', PaymentCreateAPIView.as_view(), name='payment-create'),
 ]
